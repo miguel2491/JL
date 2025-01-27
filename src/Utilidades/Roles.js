@@ -3,7 +3,6 @@ import Cookies from 'universal-cookie';
 const cookies = new Cookies();
 
 export function Rol(rol){
-    
     const Aroles = cookies.get('roles');
     if(Aroles != undefined)
     {

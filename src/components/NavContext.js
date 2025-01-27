@@ -44,13 +44,13 @@ const NavProvider = ({ children }) => {
         ? [
             {
               component: CNavTitle,
-              name: 'Ventas',
+              name: 'Tickets',
             },
             ...(userIsAdmin
               ? [
                   {
                     component: CNavGroup,
-                    name: 'Cotizaciones',
+                    name: 'Crear Ticket',
                     to: '/theme/admin',
                     icon: <CIcon icon={cilWallet} customClassName="nav-icon" />,
                     items: [
@@ -66,6 +66,72 @@ const NavProvider = ({ children }) => {
               : []),
           ]
         : []),
+        ...(userIsAdmin
+          ? [
+              {
+                component: CNavTitle,
+                name: 'Catalogos',
+              },
+              ...(userIsAdmin
+                ? [
+                    {
+                      component: CNavGroup,
+                      name: 'Productos',
+                      to: '/theme/admin',
+                      icon: <CIcon icon={cilWallet} customClassName="nav-icon" />,
+                      items: [
+                        {
+                          component: CNavItem,
+                          name: 'Crear Producto',
+                          to: '/dashboard',
+                          icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />,
+                        },
+                      ],
+                    },
+                    {
+                      component: CNavGroup,
+                      name: 'Proveedor',
+                      to: '/theme/admin',
+                      icon: <CIcon icon={cilWallet} customClassName="nav-icon" />,
+                      items: [
+                        {
+                          component: CNavItem,
+                          name: 'Crear Producto',
+                          to: '/dashboard',
+                          icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />,
+                        },
+                      ],
+                    },
+                  ]
+                : []),
+            ]
+          : []),
+          ...(userIsAdmin
+            ? [
+                {
+                  component: CNavTitle,
+                  name: 'Reportes',
+                },
+                ...(userIsAdmin
+                  ? [
+                      {
+                        component: CNavGroup,
+                        name: 'Almacen',
+                        to: '/theme/admin',
+                        icon: <CIcon icon={cilWallet} customClassName="nav-icon" />,
+                        items: [
+                          {
+                            component: CNavItem,
+                            name: 'Crear Producto',
+                            to: '/dashboard',
+                            icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />,
+                          },
+                        ],
+                      },
+                    ]
+                  : []),
+              ]
+            : []),
     ]
 
     setNavigation(nav)

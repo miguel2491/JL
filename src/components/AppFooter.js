@@ -5,7 +5,7 @@ const AppFooter = () => {
   return (
     <CFooter className="px-4">
       <div className="ms-auto">
-        <span className="me-1">PRO CATSA 2.0</span>
+        <span className="me-1">JL 1.0</span>
       </div>
     </CFooter>
   )
