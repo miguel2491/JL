@@ -98,6 +98,9 @@ h3, label{
   .c-modal .modal-dialog{
 	max-width: 60%;
   }
+  .c-modal-40 .modal-dialog{
+	max-width: 40%;
+  }
   .c-modal-80 .modal-dialog{
 	max-width: 80%;
   }
@@ -121,3 +124,8 @@ h3, label{
 	/* .rc-time-picker-panel-select li */
 	color:black;	
 }
+.iconocLis{
+	color:white;
+	width:40px
+}
+

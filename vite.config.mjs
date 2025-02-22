@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
+import fs from 'fs';
 import autoprefixer from 'autoprefixer'
 
 export default defineConfig(() => {
@@ -40,9 +41,18 @@ export default defineConfig(() => {
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.scss'],
     },
     server: {
+      https: {
+        key: fs.readFileSync(path.resolve(__dirname, 'certs/key.pem')),
+        cert: fs.readFileSync(path.resolve(__dirname, 'certs/cert.pem')),
+      },
+      host:'192.168.0.110',
       port: 3000,
       proxy: {
-        // https://vitejs.dev/config/server-options.html
+        '/token': {
+          target: 'https://192.168.0.110:5004',  // URL de tu API backend
+          changeOrigin: true,
+          secure: false,  // Si usas un certificado auto-firmado, usa secure: false
+        },
       },
     },
   }
