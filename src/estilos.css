@@ -128,4 +128,24 @@ h3, label{
 	color:white;
 	width:40px
 }
+.scanner-container {
+	width: 100%;
+	height: 400px; /* Puedes ajustar este valor */
+	margin-top: 20px;
+	background-color: #f3f3f3; /* Solo para ayudar a visualizar el área de escaneo */
+  }
+/* Para pantallas más pequeñas (móviles) */
+@media (max-width: 768px) {
+	.c-modal-40 .modal-dialog {
+	  max-width: 100%; /* Para pantallas más pequeñas, ajusta el ancho */
+	}
+  }
+/* Para pantallas medianas (tablets) */
+@media (max-width: 992px) {
+	.c-modal-40 .modal-dialog {
+	  max-width: 90%; /* Para pantallas medianas, ajusta el ancho */
+	}
+  }
+  
+
 

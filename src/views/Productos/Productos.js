@@ -1,9 +1,12 @@
 import React, {useEffect, useState, useRef} from 'react'
 import Swal from "sweetalert2";
 import DataTable from 'react-data-table-component';
+import BarcodeScannerComponent from 'react-qr-barcode-scanner';
 import '../../estilos.css';
 import BuscadorDT from '../../views/base/parametros/BuscadorDT'
-import { convertArrayOfObjectsToCSV, getProductos, suCategoria, getCategoriaId, delCategoriaId } from '../../Utilidades/Funciones';
+import { convertArrayOfObjectsToCSV, getProductos, suCategoria, getCategoriaId, delCategoriaId,
+    getProveedores,getCategorias, getProductosId, suProductos, delProductosId
+ } from '../../Utilidades/Funciones';
 import {
     CContainer,
     CFormInput,
@@ -21,7 +24,7 @@ import {
     CModalFooter
 } from '@coreui/react'
 import {CIcon} from '@coreui/icons-react'
-import { cilBadge, cilSave, cilTrash, cilBan, cilPlus } from '@coreui/icons'
+import { cilBadge, cilSave, cilTrash, cilBan, cilPlus, cilPen } from '@coreui/icons'
 import { Rol } from '../../Utilidades/Roles'
 import "react-datepicker/dist/react-datepicker.css"
 
@@ -29,6 +32,8 @@ const Productos = () => {
     //************************************************************************************************************************************************************************** */
     const userIs = Rol('Usuario');
     const userIsAdmin = Rol('Admin');
+    const [isCameraActive, setIsCameraActive] = useState(false);
+    const [hasPermission, setHasPermission] = useState(true);  
     //Arrays
     const [dtProductos, setDTProductos] = useState([]);
     const [dtCategorias, setDTCategorias] = useState([]);
@@ -41,7 +46,9 @@ const Productos = () => {
     const [IdCat, setIdCat] = useState(0);
     const [IdPro, setIdPro] = useState(0);
     const [Nombre, setNombre] = useState('');
-    const [Ubicacion, setUbicacion] = useState('');
+    const [Descripcion, setDescripcion] = useState('');
+    const [Precio, setPrecio] = useState(0);
+    const [Cantidad, setCantidad] = useState(0);
     const [Estatus, setEstatus] = useState('');
     // AUX
     const [btnG, setBtnG] = useState("Guardar");
@@ -52,7 +59,28 @@ const Productos = () => {
     //************************************************************************************************************************************************************************** */
     useEffect(() => {
         getProductos_();
+        getCategorias_();
+        getProveedores_();
     }, []);
+    useEffect(() => {
+        // Verifica si la cámara ya está disponible
+        if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+          navigator.mediaDevices.enumerateDevices()
+            .then(devices => {
+              console.log('Dispositivos de medios:', devices);
+              const hasCamera = devices.some(device => device.kind === 'videoinput');
+              if (!hasCamera) {
+                console.error('No se detectó una cámara disponible.');
+                setHasPermission(false);
+              }
+            })
+            .catch(err => {
+              console.error('Error al enumerar dispositivos:', err);
+              setHasPermission(false);
+            });
+        }
+      }, []);
+    
     //************************************************************************************************************************************************************************** */    
     const getProductos_ = () =>{
         Swal.fire({
@@ -77,7 +105,37 @@ const Productos = () => {
             Swal.close();
             Swal.fire("Error", "No se pudo obtener la información", "error");
         }
-    }    
+    }
+    const getCategorias_ = async() =>{
+        try{
+            Swal.close();
+            const ocList = await getCategorias();
+            setDTCategorias(ocList)
+        }catch(error){
+            Swal.close();
+            console.error(error)
+        }
+    }
+    const getProveedores_ = async() =>{
+        try{
+            Swal.close();
+            const ocList = await getProveedores();
+            setDTProveedores(ocList)
+        }catch(error){
+            Swal.close();
+            console.error(error)
+        }
+    }
+    //************************************************************************************************************************************************************************** */
+    const checkCameraPermission = async () => {
+        try {
+          await navigator.mediaDevices.getUserMedia({ video: true });
+          setHasPermission(true);  // Si se concede el permiso, cambiamos el estado
+        } catch (error) {
+          setHasPermission(false);  // Si ocurre un error (por ejemplo, no hay cámara o no hay permisos), cambiamos el estado
+        }
+      };
+      
     //********************************** COLS **************************************************************************************************************************************** */
     const colPro = [
     {
@@ -87,53 +145,27 @@ const Productos = () => {
         cell: (row) => (
             <div>
                 <CRow>
-                {(userIsAdmin) && (
-                <>
                 <CCol xs={6} md={6} lg={6}>
                     <CButton
-                        color="primary"
-                        onClick={() => openMCategoria(row.id)}
+                        color="warning"
+                        onClick={() => getProductoInd_(row.id)}
                         size="sm"
                         className="me-2"
                         title="Actualizar"
                     >
-                        <CIcon icon={cilSave} />
+                        <CIcon icon={cilPen} />
                     </CButton>
                 </CCol>
-                <CCol xs={6} md={6} lg={6}>
-                    <CButton
-                        color="success"
-                        onClick={() => openMCategoria(row.id)}
-                        size="sm"
-                        className="me-2"
-                        title="Categoria"
-                    >
-                        <CIcon icon={cilSave} />
-                    </CButton>
-                </CCol>
-                <CCol xs={6} md={6} lg={6}>
-                    <CButton
-                        color="info"
-                        onClick={() => openMProveedor(row.id)}
-                        size="sm"
-                        className="me-2"
-                        title="Proveedor"
-                    >
-                        <CIcon icon={cilSave} />
-                    </CButton>
-                </CCol>
-                </>
-                )}
                 {(row.estatus == '1') && (
                 <CCol xs={6} md={6} lg={6}>
                     <CButton
                         color="danger"
-                        onClick={() => delCategoria(row.id)}
+                        onClick={() => delProducto(row.id)}
                         size="sm"
                         className="me-2"
                         title="Eliminar"
                     >
-                        <CIcon icon={cilBan} />
+                        <CIcon icon={cilTrash} />
                     </CButton>
                 </CCol>
                 )}
@@ -276,9 +308,47 @@ const Productos = () => {
     const hNombre = (e) => {
         setNombre(e.target.value)
     };
+    const hPrecio = (e) => {
+        setPrecio(e.target.value)
+    };
+    const hDescripcion = (e) => {
+        setDescripcion(e.target.value)
+    };
+    const hCantidad = (e) => {
+        setCantidad(e.target.value)
+    };
     const hEstatus = (e) => {
         setEstatus(e.target.value)
     };
+    const handleScan = (result) => {
+        Swal.fire("Éxito", result, "success");
+        if (result) {
+          console.log(result.text)
+          Swal.fire("Éxito", result.text, "success");
+            //setData(result.text); // Guardar el código escaneado
+        }
+    };
+    const handleError = (error) => {
+        console.error(error); // Manejar cualquier error de escaneo
+        Swal.fire("Error", error, "success");
+    };   
+    const handleStartCamera = async() => {
+        try {
+            // Verificar si el navegador tiene permiso para acceder a la cámara
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            if (stream) {
+              setHasPermission(true);
+              setIsCameraActive(true);  // Activa la cámara si se tienen permisos
+            }
+        } catch (error) {
+        console.error('Error al acceder a la cámara:', error);
+        setHasPermission(false); // No se pudo acceder a la cámara
+        }
+    };
+    
+    const handleStopCamera = () => {
+    setIsCameraActive(false); // Detiene la cámara cuando el usuario presiona el botón para detenerla
+    } 
     //************************************************************************************************************************************************************************************* */
     // Función de búsqueda
     const onFindBusqueda = (e) => {
@@ -303,15 +373,15 @@ const Productos = () => {
     const oMPro = () =>{
         setVMPro(true)
         setId(0)
+        setIdCat('-')
+        setIdPro('-')
         setNombre('')
+        setDescripcion('')
+        setPrecio(0)
+        setCantidad(0)
         setEstatus('-')
     }
-    const openMCategoria = (id) =>{
-        setMCategoria(true);
-        getCategoriaInd_(id);
-        setBtnG("Actualizar")
-    }
-    const getCategoriaInd_ = async(id) =>{
+    const getProductoInd_ = async(id) =>{
         Swal.fire({
             title: 'Cargando...',
             text: 'Espera por favor...',
@@ -321,41 +391,49 @@ const Productos = () => {
         });
         try{
             Swal.close();
-            const ocList = await getCategoriaId(id);
+            setVMPro(true);
+            const ocList = await getProductosId(id);
+            console.log(ocList)
             setNombre(ocList[0].nombre)
+            setIdCat(ocList[0].id_categoria)
+            setIdPro(ocList[0].id_proveedor)
+            setDescripcion(ocList[0].descripcion)
+            setPrecio(ocList[0].precio)
+            setCantidad(ocList[0].cantidad)
             setEstatus(ocList[0].estatus)
             setId(ocList[0].id)
-            console.log(ocList)
         }catch(error){
             Swal.close();
             console.error(error)
         }
     }
     //************************************************************************************************************************************************************************************** */
-    const onSaveCategoria = () =>{
+    const onSaveProducto = () =>{
         Swal.fire({
             title: 'Guardar...',
             text: 'Estamos guardando la información...',
             didOpen: () => {
                 Swal.showLoading();  // Muestra la animación de carga
-                saveCategoria_(Id, Nombre, Estatus)
+                saveProducto_(Id, IdCat, IdPro, Nombre, Descripcion, Precio, Cantidad, Estatus)
             }
         });
     };
-    const saveCategoria_ = async(Id, Nombre, Estatus)=>{
+    
+    const saveProducto_ = async(Id, IdCat, IdPro, Nombre, Descripcion, Precio, Cantidad, Estatus)=>{
         try{
-            const ocList = await suCategoria(Id, Nombre, Estatus);
+            const ocList = await suProductos(Id, IdCat, IdPro, Nombre, Descripcion, Precio, Cantidad, Estatus);
+            console.log(ocList)
             // Cerrar el loading al recibir la respuesta
             Swal.close();  // Cerramos el loading
             Swal.fire("Éxito", "Se realizo Correctamente", "success");
-            setMCategoria(false);
-            getCategoria_();
+            setVMPro(false);
+            getProductos_();
         }catch(error){
             Swal.close();
             Swal.fire("Error", "No se pudo obtener la información", "error");
         }
     };
-    const delCategoria = (Id) =>
+    const delProducto = (Id) =>
         {
             Swal.fire({
                 title: "¿Eliminar Registro?",
@@ -366,16 +444,16 @@ const Productos = () => {
                 confirmButtonText: "Eliminar"
             }).then((result) => {
                 if (result.isConfirmed) {
-                    deleteCat(Id)
+                    deletePro(Id)
                 }
             });
     };
-    const deleteCat = async(Id) =>{
+    const deletePro = async(Id) =>{
         try{
-            const ocList = await delCategoriaId(Id);   
+            const ocList = await delProductosId(Id);   
             Swal.close();  // Cerramos el loading
             Swal.fire("Éxito", "Se realizo Correctamente", "success");
-            getCategoria_()
+            getProductos_()
         }catch(error){
             Swal.close();
             Swal.fire("Error", "No se pudo obtener la información", "error");
@@ -387,11 +465,26 @@ const Productos = () => {
         <CContainer fluid>
             <h3>Productos </h3>
             <CRow className='mt-2 mb-2'>
-                <CCol xs={3} md={3}>
+            <div style={{ width: '100%', height: '400px', backgroundColor: '#f3f3f3', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                {isCameraActive ? (
+                    <BarcodeScannerComponent
+                        onScan={handleScan} // Usar onScan para manejar el escaneo
+                        onError={handleError} // Usar onError para manejar los errores
+                    />                  
+                ):(
+                    <div>
+                    {!hasPermission && <p>No se pudo acceder a la cámara. Asegúrate de que los permisos estén habilitados.</p>}
+                    <CButton color="primary" onClick={handleStartCamera}>Iniciar Cámara</CButton>
+                </div>
+                )}
+            </div>
+            </CRow>
+            <CRow className='mt-2 mb-2'>
+                <CCol xs={8} md={3}>
                     <BuscadorDT value={vBuscador} onChange={onFindBusqueda} onSearch={fBusqueda} />
                 </CCol>
-                <CCol xs={3} md={3}>
-                    <CButton style={{'margin-top':'8%'}} onClick={oMPro}
+                <CCol xs={4} md={3}>
+                    <CButton style={{marginTop:'8%'}} onClick={oMPro}
                     color='primary' size='sm' title='Agregar'>
                     <CIcon icon={cilPlus} /> Nuevo</CButton>
                 </CCol>
@@ -412,7 +505,7 @@ const Productos = () => {
                 backdrop="static"
                 visible={vMPro}
                 onClose={() => setVMPro(false)}
-                className='c-modal-40'
+                className='c-modal-80'
             >
                 <CModalHeader>
                     <CModalTitle id="oc_">Producto</CModalTitle>
@@ -443,7 +536,7 @@ const Productos = () => {
                                 ))}
                             </CFormSelect>
                         </CCol>
-                        <CCol xs={6} md={8}>
+                        <CCol xs="auto" md="auto">
                             <CFormInput
                                 type="text"
                                 label="Nombre"
@@ -452,34 +545,36 @@ const Productos = () => {
                                 onChange={hNombre}
                             />
                         </CCol>
-                        <CCol xs={6} md={8}>
+                    </CRow>
+                    <CRow>
+                        <CCol xs="auto" md="auto">
                             <CFormInput
                                 type="text"
                                 label="Descripcion"
                                 placeholder="Descripcion"
-                                value={Nombre}
-                                onChange={hNombre}
+                                value={Descripcion}
+                                onChange={hDescripcion}
                             />
                         </CCol>
-                        <CCol xs={6} md={8}>
+                        <CCol xs="auto" md="auto">
                             <CFormInput
                                 type="text"
                                 label="Precio"
                                 placeholder="Precio"
-                                value={Nombre}
-                                onChange={hNombre}
+                                value={Precio}
+                                onChange={hPrecio}
                             />
                         </CCol>
-                        <CCol xs={6} md={8}>
+                        <CCol xs="auto" md="auto">
                             <CFormInput
                                 type="text"
                                 label="Cantidad"
                                 placeholder="Cantidad"
-                                value={Nombre}
-                                onChange={hNombre}
+                                value={Cantidad}
+                                onChange={hCantidad}
                             />
                         </CCol>
-                        <CCol xs={6} md={4}>
+                        <CCol xs="auto" md="auto">
                             <label>Estatus</label><br/>
                             <CFormSelect size="sm" className="mb-3" aria-label="Interfaz"
                                 value={Estatus}
@@ -495,108 +590,12 @@ const Productos = () => {
                 <CModalFooter>
                     <CCol xs={4} md={4}></CCol>
                     <CCol xs={4} md={3}>
-                        <CButton color='primary' onClick={onSaveCategoria} style={{'color':'white'}} > 
+                        <CButton color='primary' onClick={onSaveProducto} style={{'color':'white'}} > 
                             <CIcon icon={cilSave} /> {btnG}
                         </CButton>
                     </CCol>
                     <CCol xs={4} md={3}>
                         <CButton color='danger' onClick={() => setVMPro(false)} style={{'color':'white'}} > 
-                            <CIcon icon={cilTrash} />   Cerrar
-                        </CButton>
-                    </CCol>
-                </CModalFooter>
-            </CModal>
-            {/* VMP */}
-            <CModal 
-                backdrop="static"
-                visible={vMP}
-                onClose={() => setVMP(false)}
-                className='c-modal-40'
-            >
-                <CModalHeader>
-                    <CModalTitle id="oc_">Proveedor</CModalTitle>
-                </CModalHeader>
-                <CModalBody>
-                    <CRow className='mt-2 mb-2'>
-                        <CCol xs={6} md={8}>
-                            <CFormInput
-                                type="text"
-                                label="Categoria"
-                                placeholder="Categoria"
-                                value={Nombre}
-                                onChange={hNombre}
-                            />
-                        </CCol>
-                        <CCol xs={6} md={4}>
-                            <label>Estatus</label><br/>
-                            <CFormSelect size="sm" className="mb-3" aria-label="Interfaz"
-                                value={Estatus}
-                                onChange={hEstatus}
-                            >
-                                <option value="-">-</option>
-                                <option value="1">ACTIVO</option>
-                                <option value="0">INACTIVO</option>
-                            </CFormSelect>
-                        </CCol>
-                    </CRow>
-                </CModalBody>
-                <CModalFooter>
-                    <CCol xs={4} md={4}></CCol>
-                    <CCol xs={4} md={3}>
-                        <CButton color='primary' onClick={onSaveCategoria} style={{'color':'white'}} > 
-                            <CIcon icon={cilSave} /> {btnG}
-                        </CButton>
-                    </CCol>
-                    <CCol xs={4} md={3}>
-                        <CButton color='danger' onClick={() => setVMP(false)} style={{'color':'white'}} > 
-                            <CIcon icon={cilTrash} />   Cerrar
-                        </CButton>
-                    </CCol>
-                </CModalFooter>
-            </CModal>
-            {/* VMC */}
-            <CModal 
-                backdrop="static"
-                visible={vMC}
-                onClose={() => setVMC(false)}
-                className='c-modal-40'
-            >
-                <CModalHeader>
-                    <CModalTitle id="oc_">Categoria</CModalTitle>
-                </CModalHeader>
-                <CModalBody>
-                    <CRow className='mt-2 mb-2'>
-                        <CCol xs={6} md={8}>
-                            <CFormInput
-                                type="text"
-                                label="Categoria"
-                                placeholder="Categoria"
-                                value={Nombre}
-                                onChange={hNombre}
-                            />
-                        </CCol>
-                        <CCol xs={6} md={4}>
-                            <label>Estatus</label><br/>
-                            <CFormSelect size="sm" className="mb-3" aria-label="Interfaz"
-                                value={Estatus}
-                                onChange={hEstatus}
-                            >
-                                <option value="-">-</option>
-                                <option value="1">ACTIVO</option>
-                                <option value="0">INACTIVO</option>
-                            </CFormSelect>
-                        </CCol>
-                    </CRow>
-                </CModalBody>
-                <CModalFooter>
-                    <CCol xs={4} md={4}></CCol>
-                    <CCol xs={4} md={3}>
-                        <CButton color='primary' onClick={onSaveCategoria} style={{'color':'white'}} > 
-                            <CIcon icon={cilSave} /> {btnG}
-                        </CButton>
-                    </CCol>
-                    <CCol xs={4} md={3}>
-                        <CButton color='danger' onClick={() => setVMC(false)} style={{'color':'white'}} > 
                             <CIcon icon={cilTrash} />   Cerrar
                         </CButton>
                     </CCol>

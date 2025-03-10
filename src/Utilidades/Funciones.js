@@ -3,7 +3,7 @@ import {FormatoFca, Fnum} from './Tools'
 import { format } from 'date-fns';
 import Cookies from 'universal-cookie'
 const cookies = new Cookies();
-const baseUrl="https://192.168.0.110:5004/";
+const baseUrl="https://192.168.100.44:5004/";
 //****************************************************************************************************************************************************************************** */
 export async function GetToken(){
     try{
@@ -703,7 +703,7 @@ export async function getProveedoresId(id)
       return false
     }
 };
-export async function suProveedores(id,nombre,estatus)
+export async function suProveedores(id,id_categoria,nombre,estatus)
 {
     try{
     let confi_ax = 
@@ -714,7 +714,8 @@ export async function suProveedores(id,nombre,estatus)
           withCredentials: true, 
     }
     let data = {
-      'id':id,
+      'id':id_categoria,
+      'id_categoria':id_categoria,
       'nombre':nombre,
       'estatus':estatus
     }
@@ -775,7 +776,7 @@ export async function getProductosId(id)
           },
           withCredentials: true, 
     }
-    const response = await axios.get(baseUrl+'categoria/'+id, confi_ax);
+    const response = await axios.get(baseUrl+'producto/'+id, confi_ax);
     if (response.data && response.data.length > 0) {
       return response.data;
     }else{return false}
@@ -785,7 +786,7 @@ export async function getProductosId(id)
       return false
     }
 };
-export async function suProductos(id,nombre,estatus)
+export async function suProductos(id,IdCat, IdPro, Nombre, Descripcion, Precio, Cantidad, Estatus)
 {
     try{
     let confi_ax = 
@@ -797,10 +798,15 @@ export async function suProductos(id,nombre,estatus)
     }
     let data = {
       'id':id,
-      'nombre':nombre,
-      'estatus':estatus
+      'id_categoria':IdCat,
+      'id_proveedor':IdPro,
+      'nombre':Nombre,
+      'descripcion':Descripcion,
+      'precio':Precio,
+      'cantidad':Cantidad,
+      'estatus':Estatus
     }
-    const response = await axios.post(baseUrl+'categoria', data, confi_ax);
+    const response = await axios.post(baseUrl+'producto', data, confi_ax);
     return response;
     }
     catch(error)
@@ -818,7 +824,7 @@ export async function delProductosId(id)
           },
           withCredentials: true, 
     }
-    const response = await axios.delete(baseUrl+'categoria/'+id, confi_ax);
+    const response = await axios.delete(baseUrl+'producto/'+id, confi_ax);
     return response;
     }
     catch(error)
@@ -874,6 +880,92 @@ export async function getVisitas(id, motivo){
     return false
   }
 }
+// ===> Almacen
+export async function getAlmacen(){
+  try{
+    let confi_ax = 
+        {
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8', // Define el tipo de contenido
+          },
+          withCredentials: true, 
+    }
+    const response = await axios.get(baseUrl+'almacenes', confi_ax);
+    var obj = response.data;
+      if(obj && obj.length > 0)
+      {
+          return obj
+      }else{return false}
+  }
+  catch(error)
+  {
+    return false
+  }
+};
+export async function getAlmacenId(id)
+{
+    try{
+      let confi_ax = 
+        {
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8', // Define el tipo de contenido
+          },
+          withCredentials: true, 
+    }
+    const response = await axios.get(baseUrl+'almacen/'+id, confi_ax);
+    if (response.data && response.data.length > 0) {
+      return response.data;
+    }else{return false}
+    }
+    catch(error)
+    {
+      return false
+    }
+};
+export async function suAlmacen(id,idProducto, cantidad, cantidadMax, cantidadMin)
+{
+    try{
+    let confi_ax = 
+        {
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8', // Define el tipo de contenido
+          },
+          withCredentials: true, 
+    }
+    let data = {
+      'id':id,
+      'id_producto':idProducto,
+      'cantidad':cantidad,
+      'cantidad_max':cantidadMax,
+      'cantidad_min':cantidadMin
+    }
+    const response = await axios.post(baseUrl+'almacen', data, confi_ax);
+    return response;
+    }
+    catch(error)
+    {
+      return false
+    }
+};
+export async function delAlmacen(id)
+{
+    try{
+    let confi_ax = 
+        {
+        headers: {
+            'Content-Type': 'application/json;charset=UTF-8', // Define el tipo de contenido
+          },
+          withCredentials: true, 
+    }
+    const response = await axios.delete(baseUrl+'almacen/'+id, confi_ax);
+    console.log(response)
+    return response;
+    }
+    catch(error)
+    {
+      return false
+    }
+};
 //****************************************************************************************************************************************************************************** */
 //REPORTES
 export async function getPedidoInd(npedido) {

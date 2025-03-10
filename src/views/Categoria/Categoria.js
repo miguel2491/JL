@@ -308,7 +308,7 @@ const Categoria = () => {
                     <BuscadorDT value={vBuscador} onChange={onFindBusqueda} onSearch={fBusqueda} />
                 </CCol>
                 <CCol xs={3} md={3}>
-                    <CButton style={{'margin-top':'8%'}} onClick={oMCat}
+                    <CButton style={{ marginTop:'8%' }} onClick={oMCat}
                     color='primary' size='sm' title='Agregar'>
                     <CIcon icon={cilPlus} /> Nuevo</CButton>
                 </CCol>

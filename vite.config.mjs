@@ -42,14 +42,14 @@ export default defineConfig(() => {
     },
     server: {
       https: {
-        key: fs.readFileSync(path.resolve(__dirname, 'certs/key.pem')),
-        cert: fs.readFileSync(path.resolve(__dirname, 'certs/cert.pem')),
+        key: fs.readFileSync(path.resolve(__dirname, 'certs','keyJLN.pem'),'utf8'),
+        cert: fs.readFileSync(path.resolve(__dirname, 'certs','cert.pem'),'utf8'),
       },
-      host:'192.168.0.110',
+      host:'192.168.100.44',
       port: 3000,
       proxy: {
         '/token': {
-          target: 'https://192.168.0.110:5004',  // URL de tu API backend
+          target: 'https://192.168.100.44:5004',  // URL de tu API backend
           changeOrigin: true,
           secure: false,  // Si usas un certificado auto-firmado, usa secure: false
         },

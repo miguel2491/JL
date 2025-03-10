@@ -288,12 +288,9 @@ const Proveedor = () => {
 
     const saveProv_ = async(IdCategoria, Nombre, Ubicacion, Estatus)=>{
         try{
-            if(Id != 0)
-            {
-                const ocList = await updateProv(Id, IdCategoria, Nombre, Ubicacion, Estatus);
-            }else{
-                const ocList = await saveProv(IdCategoria, Nombre, Ubicacion, Estatus);
-            }
+            console.log(Id)
+            const ocList = await suProveedores(Id,IdCategoria, Nombre, Ubicacion, Estatus);
+            console.log(ocList)
             // Cerrar el loading al recibir la respuesta
             Swal.close();  // Cerramos el loading
             Swal.fire("Éxito", "Se realizo Correctamente", "success");
@@ -311,7 +308,7 @@ const Proveedor = () => {
         <CContainer fluid>
             <h3>Proveedor </h3>
             <CRow className='mt-2 mb-2'>
-                <CCol xs={3} md={3}>
+                <CCol xs={8} md={3}>
                     <BuscadorDT value={vBuscador} onChange={onFindBusqueda} onSearch={fBusqueda} />
                 </CCol>
                 <CCol xs={3} md={3}>

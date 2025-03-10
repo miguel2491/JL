@@ -28,6 +28,8 @@ import {
   cilCc,
   cilBook,
   cilMap,
+  cilBasket,
+  cilFridge,
 } from '@coreui/icons'
 import { CNavGroup, CNavItem, CNavTitle } from '@coreui/react'
 import CIcon from '@coreui/icons-react'
@@ -91,13 +93,13 @@ const NavProvider = ({ children }) => {
                           component: CNavItem,
                           name: 'Tickets',
                           to: '/ticket',
-                          icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />,
+                          icon: <CIcon icon={cilBasket} customClassName="nav-icon" />,
                         },
                         {
                           component: CNavItem,
                           name: 'Almacen',
                           to: '/almacen',
-                          icon: <CIcon icon={cilCalculator} customClassName="nav-icon" />,
+                          icon: <CIcon icon={cilFridge} customClassName="nav-icon" />,
                         },
                       ],
                     },
